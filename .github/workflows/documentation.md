@@ -1,15 +1,15 @@
 # GitHub Action Workflow: Terraform and AKS Deployment
 
-This GitHub Action workflow automates the provisioning of infrastructure using Terraform and the deployment of a Dockerized application to an Azure Kubernetes Service (AKS) cluster.
+This GitHub Action workflow automates the provisioning of infrastructure using Terraform and the deployment of a Dockerized application (FlightBookingSystemSample) to an Azure Kubernetes Service (AKS) cluster.
 
 ## Workflow Overview
 
 The workflow consists of the following steps:
 
 1. **Terraform Initialization and Planning**: Initializes Terraform with backend configuration and generates a plan to preview changes.
-2. **Build and Push Docker Image**: Builds a Docker image for the application and pushes it to the Azure Container Registry (ACR).
+2. **Build and Push Docker Image**: Builds a Docker image for the FlightBookingSystemSample application and pushes it to the Azure Container Registry (ACR).
 3. **Configure kubectl**: Configures `kubectl` to connect to the Azure Kubernetes Service.
-4. **Deploy to AKS**: Deploys the application to the AKS cluster using the Kubernetes deployment manifest.
+4. **Deploy to AKS**: Deploys the FlightBookingSystemSample application to the AKS cluster using the Kubernetes deployment manifest (`deployment.yaml`).
 
 ## Usage
 
@@ -27,7 +27,7 @@ To use this GitHub Action workflow:
    - `AZ_RESOURCE_GROUP`: Azure Resource Group name for AKS.
    - `AZ_KUBERNETES_CLUSTER`: Azure Kubernetes Service (AKS) cluster name.
 
-2. Create a deployment manifest (`deployment.yaml`) for your Kubernetes application and place it in the root directory of your repository.
+2. Create a deployment manifest (`deployment.yaml`) for the FlightBookingSystemSample application and place it in the root directory of your repository.
 
 3. Commit and push your changes to trigger the GitHub Action workflow.
 
@@ -45,11 +45,11 @@ To use this GitHub Action workflow:
 
 ### 2. Build and Push Docker Image
 
-- **Purpose**: Builds a Docker image for the application and pushes it to the Azure Container Registry.
+- **Purpose**: Builds a Docker image for the FlightBookingSystemSample application and pushes it to the Azure Container Registry.
 - **Input**: Dockerfile and Azure Container Registry credentials stored as secrets.
 - **Output**: Docker image pushed to Azure Container Registry.
 - **Comments**:
-  - Builds a Docker image for the application using the provided Dockerfile.
+  - Builds a Docker image for the FlightBookingSystemSample application using the provided Dockerfile.
   - Tags the Docker image with the Azure Container Registry URL.
   - Pushes the Docker image to the Azure Container Registry.
 
@@ -63,12 +63,11 @@ To use this GitHub Action workflow:
 
 ### 4. Deploy to AKS
 
-- **Purpose**: Deploys the application to the Azure Kubernetes Service.
+- **Purpose**: Deploys the FlightBookingSystemSample application to the Azure Kubernetes Service.
 - **Input**: Kubernetes deployment manifest (`deployment.yaml`).
 - **Output**: Application deployed to AKS.
 - **Comments**:
-  - Applies the Kubernetes deployment manifest to deploy the application to the AKS cluster.
-
+  - Applies the Kubernetes deployment manifest to deploy the FlightBookingSystemSample application to the AKS cluster.
 ---
 
-
+Feel free to adjust the content as needed to provide more context or additional instructions specific to your project.

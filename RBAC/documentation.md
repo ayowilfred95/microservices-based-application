@@ -1,4 +1,3 @@
-```markdown
 # Role-Based Access Control (RBAC) Implementation for Azure Resources with Terraform
 
 ## 1. Prepare Your Environment
@@ -131,5 +130,4 @@ terraform plan -destroy -out main.destroy.tfplan
 terraform apply main.destroy.tfplan
 ```
 
-You're now equipped to build and deploy infrastructure with role-based access control using Terraform.
-``` 
+
