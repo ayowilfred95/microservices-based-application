@@ -70,4 +70,3 @@ To use this GitHub Action workflow:
   - Applies the Kubernetes deployment manifest to deploy the FlightBookingSystemSample application to the AKS cluster.
 ---
 
-Feel free to adjust the content as needed to provide more context or additional instructions specific to your project.
