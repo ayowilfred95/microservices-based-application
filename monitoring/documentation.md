@@ -69,5 +69,5 @@ Terraform will initialize the project and create the AKS cluster with monitoring
 
 After the deployment is complete, you can verify that monitoring is enabled for your AKS cluster:
 
-- Access the Azure portal, navigate to your AKS cluster, and open the “Monitoring” section to view container insights, performance metrics, and logs.
+- Access the Azure portal, navigate to your AKS cluster, and open the "Monitoring" section to view container insights, performance metrics, and logs.
 - You can also use Azure Monitor and Azure Log Analytics to create custom alerts and queries to monitor and troubleshoot your AKS cluster effectively.
