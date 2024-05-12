@@ -11,11 +11,19 @@ To access the GitHub repositories for each microservice, navigate to the followi
 
 ### Workflow
 
-A CI/CD pipleine was set up using Github Action. Credentials was obtained using service principal set up in terraform 
+A CI/CD pipeline was set up using GitHub Actions. Credentials were obtained using service principal set up in Terraform:
 
 ```bash
 az ad sp create-for-rbac --name "aks-getting-started" --role contributor --scopes /subscriptions/62b729bc-acad-4045-b66a-2bc5dd380cf3/resourceGroups/aks-getting-started --sdk-auth
 ```
-Any push to the main branch will trigger the pipeline and runs the jobs declared in the pipeline.
 
-Dockerfile, deployment.yml file was provided with the project to allow fast docker buil and deployment to AKS
+Any push to the main branch will trigger the pipeline and run the jobs declared in the pipeline.
+
+A Dockerfile and deployment.yml file were provided with the project to allow fast Docker build and deployment to AKS.
+
+Any process that fails the build stage will not be deployed.
+
+### Deployment
+
+The deployment is of load balancer type, meaning it can be accessed just by the IP address mapped with the default node port which Kubernetes assigned for this particular deployment.
+
