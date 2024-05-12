@@ -1,141 +1,41 @@
-# Infrastructure Setup Using Terraform and Azure Kubernetes Services (AKS)
+# CASE STUDY: DEPLOYMENT AND MANAGEMENT OF A MICROSERVICES-BASED APPLICATION USING TERRAFORM
 
-## Azure CLI
+## Objective 1: Infrastructure Setup Using Terraform and Azure Kubernetes Services (AKS)
 
-You can get the Azure CLI on [Azure-Cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) <br/>
-Am using mac
-We'll need the Azure CLI to gather information so we can build our Terraform file.
+**Objective:**
+- Use Terraform to define the infrastructure for a Kubernetes cluster in AKS.
+- Ensure the Terraform scripts include configurations for high availability, scalability, and security.
+- Implement network configurations, storage classes, and any other necessary Azure resources using Terraform.
 
+**Documentation:**
+Navigate to the `terraform_aks` folder and read the `documentation.md` file to get started.
 
-## Login to Azure
+## Objective 2: Implement CI/CD Pipelines using GitHub Actions
 
-```
-#login and follow prompts
-az login 
-```
+**Objective:**
+- Set up GitHub repositories for each microservice with appropriate branching strategies.
+- Develop GitHub Actions workflows for:
+  - Running Terraform scripts to provision and update the infrastructure as needed.
+  - Continuous integration and deployment of each service to the AKS cluster.
+  - Include steps for code linting, unit testing, building Docker images, and deploying them to AKS.
 
-# Grab your `tenantId` and create an environment variable called TENAND_ID
-enironment variables helps us to keep our secret out of git
+**Documentation:**
+Navigate to the `github-action-flow` folder and read the `documentation.md` file. The file has links to GitHub repositories that have microservices application.
 
-```
-TENANT_ID=<your-tenant-id>
-```
+## Objective 3: Git Branching Strategies
 
-# view and select your subscription account
+**Objective:**
+- Develop a Git branching strategy suitable for a multi-service application, ensuring seamless collaboration and integration with the CI/CD process.
+- Include guidelines on branch naming, branching off, merging strategies, and handling conflicts.
 
-```
-az account list -o table
-```
-# Grab your `SubscriptionId` and create an environment variable called  SUBSCRIPTION
+**Documentation:**
+Navigate to the `git-branching-strategy` folder and read the `documentation.md` file.
 
-```
-SUBSCRIPTION=<id>
-```
+## Objective 4: Azure Administration with Terraform
 
+**Objective:**
+- Use Terraform to set up monitoring, logging, and alerts for the Kubernetes services using Azure Monitor and Log Analytics.
+- Implement role-based access control (RBAC) for Azure resources through Terraform configurations.
 
-# Just to make sure that any commands i ran runs against this subscription
-
-```
-az account set --subscription $SUBSCRIPTION
-```
-
-
-## Create Service Principal
-# In order to interact with Azure using terraform Cli, you gonna need a service principle.
-service principle is just a service account you can use to interact with your azure infrastructure
-
-Kubernetes needs a service account to manage our Kubernetes cluster </br>
-Lets create one! </br>
-
-
-```
-
-SERVICE_PRINCIPAL_JSON=$(az ad sp create-for-rbac --skip-assignment --name aks-microservice-based-application-sp -o json)
-# print out the credentials
-echo $SERVICE_PRINCIPAL_JSON
-
-# Keep the `appId` and `password` for later use!
-
-SERVICE_PRINCIPAL=$(echo $SERVICE_PRINCIPAL_JSON | jq -r '.appId')
-SERVICE_PRINCIPAL_SECRET=$(echo $SERVICE_PRINCIPAL_JSON | jq -r '.password')
-
-#note: reset the credential if you have any sinlge or double quote on password
-az ad sp credential reset --name "aks-getting-started-sp"
-
-# Grant contributor role over the subscription to our service principal, since the service principle you created has no permission
-
-az role assignment create --assignee $SERVICE_PRINCIPAL \
---scope "/subscriptions/$SUBSCRIPTION" \
---role Contributor
-
-This will allow terraform to manage the infrastructure on the subscription
-```
- 
-
-
-# Terraform CLI
-```
-# Get Terraform
-
-curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip
-
-unzip /tmp/terraform.zip
-chmod +x terraform && mv terraform /usr/local/bin/
-
-cd terraform-aks/terraform
-
-```
-
-# Generate SSH key
-
-```
-ssh-keygen -t rsa -b 4096 -N "VeryStrongSecret123!" -C "your_email@example.com" -q -f  ~/.ssh/id_rsa
-SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
-echo $SSH_KEY
-```
-
-
-## Terraform Azure Kubernetes Provider 
-```
-terraform init
-
-terraform plan -var serviceprinciple_id=$SERVICE_PRINCIPAL \
-    -var serviceprinciple_key="$SERVICE_PRINCIPAL_SECRET" \
-    -var tenant_id=$TENANT_ID \
-    -var subscription_id=$SUBSCRIPTION \
-    -var ssh_key="$SSH_KEY"
-
-terraform apply -var serviceprinciple_id=$SERVICE_PRINCIPAL \
-    -var serviceprinciple_key="$SERVICE_PRINCIPAL_SECRET" \
-    -var tenant_id=$TENANT_ID \
-    -var subscription_id=$SUBSCRIPTION \
-    -var ssh_key="$SSH_KEY"
-```
-
-
-
-# Lets see what we deployed
-
-```
-# grab our AKS config
-az aks get-credentials -n aks-getting-started -g aks-getting-started
-
-# Get kubectl
-
-curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-mv ./kubectl /usr/local/bin/kubectl
-
-kubectl get svc
-
-```
-
-# Clean up 
-
-```
-terraform destroy -var serviceprinciple_id=$SERVICE_PRINCIPAL \
-    -var serviceprinciple_key="$SERVICE_PRINCIPAL_SECRET" \
-    -var tenant_id=$TENTANT_ID \
-    -var subscription_id=$SUBSCRIPTION \
-    -var ssh_key="$SSH_KEY"
-```
+**Documentation:**
+Navigate to the `monitoring` folder and check the `documentation.md` file.

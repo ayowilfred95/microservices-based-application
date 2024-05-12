@@ -1,133 +1,78 @@
-# Role-Based Access Control (RBAC) Implementation for Azure Resources with Terraform
+# Azure Administration with Terraform: Monitoring, Logging, and RBAC Setup
 
-## 1. Prepare Your Environment
+## Monitoring and Logging with Azure Monitor and Log Analytics
 
-- **Azure Subscription**: If you're new to Azure, create a free account to get started.
-- **Terraform Configuration**: Ensure Terraform is set up in your preferred environment.
+### 1. Set Up Azure Monitor and Log Analytics
 
-## 2. Terraform Code Implementation
+To monitor and log Kubernetes services using Azure Monitor and Log Analytics, you need to integrate these services with your Azure Kubernetes Service (AKS). Here's how you can set this up using Terraform:
 
-1. **Set Up Directory**: Create a directory where you'll work with the Terraform code.
-2. **Provider Configuration**: Define the providers required for your Terraform setup. Create a file named `providers.tf` and insert the following configuration:
+1. **Create a Log Analytics Workspace**:
+   ```hcl
+   resource "azurerm_log_analytics_workspace" "example" {
+     name                = "acme-log-analytics"
+     location            = "East US"
+     resource_group_name = azurerm_resource_group.example.name
+     sku                 = "PerGB2018"
+   }
+   ```
+
+2. **Integrate AKS with Log Analytics**:
+   ```hcl
+   resource "azurerm_kubernetes_cluster" "example" {
+     name                = "acme-aks1"
+     location            = azurerm_resource_group.example.location
+     resource_group_name = azurerm_resource_group.example.name
+     ...
+     addon_profile {
+       oms_agent {
+         enabled                    = true
+         log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+       }
+     }
+   }
+   ```
+
+### 2. Define Alerts and Metrics
+
+To set up alerts and metrics, you can use the `azurerm_monitor_metric_alert` resource:
 
 ```hcl
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~>2.0"
-    }
-    azuread = {
-      source = "hashicorp/azuread"
-    }
+resource "azurerm_monitor_metric_alert" "example" {
+  name                = "high-cpu-alert"
+  resource_group_name = azurerm_resource_group.example.name
+  scopes              = [azurerm_kubernetes_cluster.example.id]
+  criteria {
+    metric_namespace = "Microsoft.ContainerService/managedClusters"
+    metric_name      = "cpuUsagePercentage"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80
+  }
+  action {
+    action_group_id = azurerm_monitor_action_group.example.id
   }
 }
-
-provider "azurerm" {
-  features {}
-}
 ```
 
-3. **Main Configuration**: Define the main Terraform configuration. Create a file named `main.tf` and insert the following code:
+## Role-Based Access Control (RBAC) with Terraform
 
-```hcl
-# Fetch Azure Active Directory users
-data "azuread_user" "aad_user" {
-  for_each            = toset(var.avd_users)
-  user_principal_name = format("%s", each.key)
-}
+### 1. Define Azure AD Groups and Roles
 
-# Access an existing built-in role
-data "azurerm_role_definition" "role" {
-  name = "Desktop Virtualization User"
-}
+You can manage RBAC for Azure resources by defining Azure AD groups and assigning roles to these groups. Here's an example of setting up an Azure AD group and assigning a role:
 
-# Create an Azure Active Directory group
-resource "azuread_group" "aad_group" {
-  display_name     = var.aad_group_name
-  security_enabled = true
-}
+1. **Create an Azure AD Group**:
+   ```hcl
+   resource "azuread_group" "example" {
+     display_name     = "KubernetesAdmins"
+     security_enabled = true
+   }
+   ```
 
-# Add members to the Azure Active Directory group
-resource "azuread_group_member" "aad_group_member" {
-  for_each         = data.azuread_user.aad_user
-  group_object_id  = azuread_group.aad_group.id
-  member_object_id = each.value["id"]
-}
-
-# Assign role to the Azure Active Directory group
-resource "azurerm_role_assignment" "role" {
-  scope              = azurerm_virtual_desktop_application_group.dag.id
-  role_definition_id = data.azurerm_role_definition.role.id
-  principal_id       = azuread_group.aad_group.id
-}
-```
-
-4. **Variables Configuration**: Define variables required for the Terraform configuration. Create a file named `variables.tf` and insert the following code:
-
-```hcl
-variable "avd_users" {
-  description = "AVD users"
-  default = [
-    "avduser01@contoso.net",
-    "avduser02@contoso.net"
-  ]
-}
-
-variable "aad_group_name" {
-  type        = string
-  default     = "AVDUsers"
-  description = "Azure Active Directory Group for AVD users"
-}
-```
-
-5. **Output Configuration**: Define outputs to display after Terraform applies the configuration. Create a file named `output.tf` and insert the following code:
-
-```hcl
-output "AVD_user_groupname" {
-  description = "Azure Active Directory Group for AVD users"
-  value       = azuread_group.aad_group.display_name
-}
-```
-
-## 3. Initialize Terraform
-
-Initialize Terraform by running the following command. This ensures all required providers are downloaded.
-
-```bash
-terraform init -upgrade
-```
-
-## 4. Generate and Review Execution Plan
-
-Create an execution plan to review changes before applying them.
-
-```bash
-terraform plan -out main.tfplan
-```
-
-## 5. Apply Terraform Configuration
-
-Apply the Terraform configuration to provision resources in your Azure environment.
-
-```bash
-terraform apply main.tfplan
-```
-
-## 6. Clean Up Resources
-
-When resources are no longer needed, follow these steps to clean up:
-
-1. Generate a destroy plan to see what resources will be deleted.
-
-```bash
-terraform plan -destroy -out main.destroy.tfplan
-```
-
-2. Apply the destroy plan to remove resources.
-
-```bash
-terraform apply main.destroy.tfplan
-```
-
-
+2. **Assign a Role to the Group**:
+   ```hcl
+   resource "azurerm_role_assignment" "example" {
+     scope              = azurerm_kubernetes_cluster.example.id
+     role_definition_name = "Contributor"
+     principal_id       = azuread_group.example.object_id
+   }
+   ```

@@ -40,6 +40,7 @@ resource "azurerm_kubernetes_cluster" "aks-cluster" {
     }
   }
 
+
   # Configure service principal for AKS authentication
   service_principal {
     client_id     = var.client_id  # Client ID of the service principal

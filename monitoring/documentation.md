@@ -1,73 +1,91 @@
-# Enabling Monitoring with Terraform
+### Azure Administration with Terraform: Monitoring, Logging, and RBAC Setup
 
-To enable monitoring for your AKS clusters using Terraform, follow these steps:
+Using Terraform to manage Azure resources provides a systematic and reproducible method for deploying and managing infrastructure. Below, we outline how to set up monitoring, logging, and alerts for Kubernetes services using Azure Monitor and Log Analytics, as well as implementing Role-Based Access Control (RBAC) for Azure resources.
 
-1. **Define AKS Cluster Configuration**
+#### 1. Monitoring and Logging with Azure Monitor and Log Analytics
+
+**Step 1: Create a Log Analytics Workspace**
+
+First, you need a Log Analytics workspace where all logs and metrics will be stored.
 
 ```hcl
-provider "azurerm" {
-  features {}
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-workspace"
+  location            = azurerm_resource_group.aks_rg.location
+  resource_group_name = azurerm_resource_group.aks_rg.name
+  sku                 = "PerGB2018"
 }
+```
 
-resource "azurerm_resource_group" "aks" {
-  name     = "my-aks-rg"
-  location = "East US"
-}
+**Step 2: Attach AKS to Log Analytics Workspace**
 
-resource "azurerm_kubernetes_cluster" "microservices" {
-  name                = "my-aks-cluster"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  dns_prefix          = "myakscluster"
+Integrate AKS with the Log Analytics workspace for monitoring.
+
+```hcl
+resource "azurerm_kubernetes_cluster" "aks_cluster" {
+  name                = var.aks-cluster
+  location            = azurerm_resource_group.aks_rg.location
+  resource_group_name = azurerm_resource_group.aks_rg.name
+  dns_prefix          = "myaksdns"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
+    name            = "default"
+    node_count      = 3
+    vm_size         = "Standard_DS2_v2"
+    vnet_subnet_id  = azurerm_subnet.aks_subnet.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    network_policy = "calico"
   }
 
   addon_profile {
     oms_agent {
-      enabled                   = true
-      log_analytics_workspace_id  = azurerm_log_analytics_workspace.example.id
+      enabled                    = true
+      log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
     }
   }
 }
 ```
 
-In this Terraform configuration:
+#### 2. Role-Based Access Control (RBAC) for Azure Resources
 
-- We define an Azure Resource Group and an AKS cluster.
-- Within the `addon_profile`, we enable the Azure Monitor for Containers (formerly known as Container Insights) add-on, which is the monitoring solution for AKS clusters.
-- We specify the Log Analytics workspace ID, which is required for storing monitoring data.
+**Step 1: Define a Role Definition**
 
-2. **Define Log Analytics Workspace Configuration**
-
-You should also create a Log Analytics workspace to store the monitoring data. Add the following code to your Terraform configuration to create the workspace:
+Create a custom role definition if the built-in roles do not meet your needs.
 
 ```hcl
-resource "azurerm_log_analytics_workspace" "container_insight" {
-  name                = "log-analytics"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  sku                 = "PerGB2018"
+resource "azurerm_role_definition" "custom_role" {
+  name        = "CustomRole"
+  scope       = azurerm_resource_group.aks_rg.id
+  description = "Custom role description"
+
+  permissions {
+    actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    azurerm_resource_group.aks_rg.id,
+  ]
 }
 ```
 
-3. **Initialize Terraform and Apply Configuration**
+**Step 2: Assign Role to a Principal**
 
-Run the following Terraform commands in your terminal:
+Assign the role to a user, group, or service principal.
 
-```bash
-terraform init
-terraform apply
+```hcl
+resource "azurerm_role_assignment" "example" {
+  scope              = azurerm_resource_group.aks_rg.id
+  role_definition_id = azurerm_role_definition.custom_role.id
+  principal_id       = var.principal_id
+}
 ```
 
-Terraform will initialize the project and create the AKS cluster with monitoring enabled. This process may take some time.
 
-4. **Verify Monitoring**
-
-After the deployment is complete, you can verify that monitoring is enabled for your AKS cluster:
-
-- Access the Azure portal, navigate to your AKS cluster, and open the "Monitoring" section to view container insights, performance metrics, and logs.
-- You can also use Azure Monitor and Azure Log Analytics to create custom alerts and queries to monitor and troubleshoot your AKS cluster effectively.
