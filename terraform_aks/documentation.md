@@ -86,10 +86,11 @@ Two common errors that may occur during provisioning are addressed:
 
 To set up the infrastructure:
 
-1. Run `./start.sh` to create a resource group and a storage account and associate the storage account with the created resource group.
-2. Run `terraform init` to initialize the provision.
-3. Run `terraform plan` to review the execution plan.
-4. Finally, run `terraform apply --auto-approve` to provision the infrastructure.
+1. Run `chmod 755 start.sh` to give permission to the bash file
+2. Run `./start.sh` to create a resource group and a storage account and associate the storage account with the created resource group.
+3. Run `terraform init` to initialize the provision.
+4. Run `terraform plan` to review the execution plan.
+5. Finally, run `terraform apply --auto-approve` to provision the infrastructure.
 
 ## Below resources will be created using this terraform configuration:-
 ```bash
